@@ -15,6 +15,8 @@ class TopViewController: UIViewController, UICollectionViewDataSource, UICollect
     
     var results:Array<Any> = []
     var urlString:String = ""
+    var images:Array<[String : Any]> = []
+    var avatars:Array<[String : Any]> = []
     
     @IBOutlet weak var collectionView: UICollectionView!
     
@@ -112,21 +114,34 @@ class TopViewController: UIViewController, UICollectionViewDataSource, UICollect
         
         if let imageUrl = item["images"]["normal"].string {
             
-            if let image = Utils.readImage(name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!) {
-                cell.thumbImageView.image = image
+            let urlArray = images.map{$0["url"]! as! String}
+            
+            if urlArray.contains(imageUrl) {
+                if let index = urlArray.index(of: imageUrl) {
+                    let dic = images[index]
+                    let image = dic["image"] as! UIImage!
+                    cell.thumbImageView.image = image
+                }
             } else {
-                let url = NSURL(string: imageUrl)! as URL
-                
-                cell.thumbImageView!.kf.setImage(with: url,
-                                                 placeholder: nil,
-                                                 options: [.transition(ImageTransition.fade(1))],
-                                                 progressBlock: { receivedSize, totalSize in
-//                                                    print("\(indexPath.row + 1): \(receivedSize)/\(totalSize)")
-                },
-                                                 completionHandler: { image, error, cacheType, imageURL in
-                                                    Utils.saveImage(image: image!, name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!)
-
-                })
+                if let image = Utils.readImage(name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!) {
+                    cell.thumbImageView.image = image
+                    
+                    let dic = ["url":imageUrl, "image":image] as [String : Any]
+                    images.append(dic)
+                } else {
+                    let url = NSURL(string: imageUrl)! as URL
+                    
+                    cell.thumbImageView!.kf.setImage(with: url,
+                                                     placeholder: nil,
+                                                     options: [.transition(ImageTransition.fade(1))],
+                                                     progressBlock: nil,
+                                                     completionHandler: { image, error, cacheType, imageURL in
+                                                        Utils.saveImage(image: image!, name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!)
+                                                        let dic = ["url":imageUrl, "image":image!] as [String : Any]
+                                                        self.images.append(dic)
+                                                        
+                    })
+                }
             }
         }
         
@@ -136,21 +151,34 @@ class TopViewController: UIViewController, UICollectionViewDataSource, UICollect
         
         if let avatarUrl = item["user"]["avatar_url"].string {
             
-            if let image = Utils.readImage(name: avatarUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!) {
-                cell.avatarImageView.image = image
+            let urlArray = avatars.map{$0["url"]! as! String}
+            
+            if urlArray.contains(avatarUrl) {
+                if let index = urlArray.index(of: avatarUrl) {
+                    let dic = avatars[index]
+                    let image = dic["image"] as! UIImage!
+                    cell.avatarImageView.image = image
+                }
             } else {
-                let url = NSURL(string: avatarUrl)! as URL
-                
-                cell.avatarImageView!.kf.setImage(with: url,
-                                                  placeholder: nil,
-                                                  options: [.transition(ImageTransition.fade(1))],
-                                                  progressBlock: { receivedSize, totalSize in
-//                                                    print("\(indexPath.row + 1): \(receivedSize)/\(totalSize)")
-                },
-                                                  completionHandler: { image, error, cacheType, imageURL in
-                                                    Utils.saveImage(image: image!, name: avatarUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!)
-                                                    
-                })
+                if let image = Utils.readImage(name: avatarUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!) {
+                    cell.avatarImageView.image = image
+                    
+                    let dic = ["url":avatarUrl, "image":image] as [String : Any]
+                    avatars.append(dic)
+                } else {
+                    let url = NSURL(string: avatarUrl)! as URL
+                    
+                    cell.avatarImageView!.kf.setImage(with: url,
+                                                      placeholder: nil,
+                                                      options: [.transition(ImageTransition.fade(1))],
+                                                      progressBlock: nil,
+                                                      completionHandler: { image, error, cacheType, imageURL in
+                                                        Utils.saveImage(image: image!, name: avatarUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!)
+                                                        let dic = ["url":avatarUrl, "image":image!] as [String : Any]
+                                                        self.avatars.append(dic)
+                                                        
+                    })
+                }
             }
         }
         

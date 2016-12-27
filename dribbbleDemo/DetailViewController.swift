@@ -38,6 +38,7 @@ class DetailViewController: UIViewController,WKNavigationDelegate{
     }
     
     deinit{
+        progressView.setProgress(0.0, animated: false)
         webView.removeObserver(self, forKeyPath: "estimatedProgress")
         webView.removeObserver(self, forKeyPath: "loading")
     }

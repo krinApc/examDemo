@@ -14,6 +14,7 @@ class HistoryViewController: UIViewController, UITableViewDataSource, UITableVie
     
     var results:Results<ItemModel>? = nil
     var urlString:String = ""
+    var images:Array<[String : Any]> = []
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -25,6 +26,12 @@ class HistoryViewController: UIViewController, UITableViewDataSource, UITableVie
         results = realm.objects(ItemModel.self)
         
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        images = [];
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -71,21 +78,35 @@ class HistoryViewController: UIViewController, UITableViewDataSource, UITableVie
         cell.detailTextLabel?.text = Utils.stringFromDate(date: (item?.read_date)!, format: "yyyy年MM月dd日 HH時mm分ss秒")
         
         if let imageUrl = item?.normal {
-            if let image = Utils.readImage(name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!) {
-                cell.imageView?.image = image
+            
+            let urlArray = images.map{$0["url"]! as! String}
+            
+            if urlArray.contains(imageUrl) {
+                if let index = urlArray.index(of: imageUrl) {
+                    let dic = images[index]
+                    let image = dic["image"] as! UIImage!
+                    cell.imageView?.image = image
+                }
             } else {
-                let url = NSURL(string: imageUrl)! as URL
-                
-                cell.imageView!.kf.setImage(with: url,
-                                                 placeholder: nil,
-                                                 options: [.transition(ImageTransition.fade(1))],
-                                                 progressBlock: { receivedSize, totalSize in
-                                                    //                                                    print("\(indexPath.row + 1): \(receivedSize)/\(totalSize)")
-                },
-                                                 completionHandler: { image, error, cacheType, imageURL in
-                                                    Utils.saveImage(image: image!, name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!)
-                                                    
-                })
+                if let image = Utils.readImage(name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!) {
+                    cell.imageView?.image = image
+                    
+                    let dic = ["url":imageUrl, "image":image] as [String : Any]
+                    images.append(dic)
+                } else {
+                    let url = NSURL(string: imageUrl)! as URL
+                    
+                    cell.imageView!.kf.setImage(with: url,
+                                                     placeholder: nil,
+                                                     options: [.transition(ImageTransition.fade(1))],
+                                                     progressBlock: nil,
+                                                     completionHandler: { image, error, cacheType, imageURL in
+                                                        Utils.saveImage(image: image!, name: imageUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.alphanumerics)!)
+                                                        let dic = ["url":imageUrl, "image":image!] as [String : Any]
+                                                        self.images.append(dic)
+                                                        
+                    })
+                }
             }
         }
     }

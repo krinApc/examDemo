@@ -7,19 +7,24 @@
 //
 
 import UIKit
+import WebKit
 
-class DetailViewController: UIViewController {
+class DetailViewController: UIViewController,WKNavigationDelegate{
     
     var urlString:String = ""
-    
-    @IBOutlet weak var webView: UIWebView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: self.view.frame.size.height))
+        webView.navigationDelegate = self
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        
         let url = NSURL(string: urlString)! as URL
         let request = NSURLRequest(url: url) as URLRequest
-        webView.loadRequest(request)
+        webView.load(request)
+        
+        view.addSubview(webView)
     }
     
 }
